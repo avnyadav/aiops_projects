@@ -4,10 +4,11 @@ Clonning source code from repo
 git clone <https://github.com/Avnish327030/aiops_projects.git>
 ```
 
-TO add files into staging or to allow file to be tracked by git
+To add files into staging or to allow file to be tracked by git
 ```
 git add <file_name>
 ```
+
 Replace "you@example.com" with github email id
 ```
  git config --global user.email "you@example.com"
@@ -40,11 +41,9 @@ git remote -v
 
 
 To send changes to remote branch
-``
+```
 git push <remote_branch_variable> <branch_name>
 ```
-
-
 
 To remove file from staging area
 ```
