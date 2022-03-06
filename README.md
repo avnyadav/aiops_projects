@@ -1,3 +1,6 @@
+
+### Basic git command
+
 Clonning source code from repo
 
 ```
@@ -49,3 +52,26 @@ To remove file from staging area
 ```
 git rm --cached <file_name>
 ```
+
+## Conda environment Creations Steps
+
+ To create conda run time environment for project
+```
+conda create -p  venv python==3.7 -y
+```
+ To activate conda environment for project
+
+```
+conda activate <./dir_nam>
+```
+
+Create a requirements.txt file
+```
+pip freeze>requirements.txt
+```
+
+To install jupyter lab
+```
+pip install jupyter lab
+```
+
