@@ -1,0 +1,2 @@
+1. Take a JSON file and generate tfrecord file
+2. COnfigure MySQL database with Interactive Context

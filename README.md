@@ -75,3 +75,11 @@ To install jupyter lab
 pip install jupyter lab
 ```
 
+
+
+
+To launch jupyter lab
+
+```
+jupyter lab
+```
