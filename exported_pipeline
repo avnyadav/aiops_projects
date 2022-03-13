@@ -1,0 +1,166 @@
+import absl
+import datetime
+from tfx.orchestration.airflow import airflow_dag_runner
+
+import os
+
+os.listdir(os.getcwd())
+
+
+
+from pathlib import Path
+
+workdir=str(Path("/home/avnish/class_12_AIOPS_PROJECTS/aiops_projects"))
+
+print(f"Current directory:{os.getcwd()}")
+os.chdir(workdir)
+print(f"Current directory:{os.getcwd()}")
+
+
+
+class Config:
+
+    def __init__(self):
+        self.work_dir=workdir
+        self.data_dir=os.path.join("data")
+        self.csv_file_name="data.csv"
+        self.csv_file_path=os.path.join(self.data_dir,self.csv_file_name)
+        self.pipeline_name="aiops_pipeline"
+        self.pipeline_root=os.path.join(os.getcwd(),"aiops_pipeline_artifact")
+        self.meta_data_path=os.path.join(os.getcwd(),"aiops_pipeline_metadata",self.pipeline_name,"metadata.db")
+
+    
+
+
+
+config = Config()
+
+from tfx.orchestration.experimental.interactive.interactive_context import InteractiveContext
+
+from tfx.orchestration.metadata import sqlite_metadata_connection_config
+
+config.pipeline_root
+
+interactive_context=InteractiveContext(
+    pipeline_name=config.pipeline_name,
+    pipeline_root=config.pipeline_root,
+    metadata_connection_config=sqlite_metadata_connection_config(config.meta_data_path)
+
+)
+
+from tfx.components import CsvExampleGen
+
+csv_example_gen=CsvExampleGen(input_base=config.data_dir)
+
+
+
+
+
+interactive_context.run(csv_example_gen)
+
+csv_example_gen
+
+from tfx.components import FileBasedExampleGen
+from tfx.components.example_gen.custom_executors import parquet_executor
+from tfx.components.base import executor_spec
+parquet_dataset_dir = os.path.join(os.getcwd(),"parquet_dir")
+file_based_example_gen = FileBasedExampleGen(input_base=parquet_dataset_dir, custom_executor_spec=executor_spec.ExecutorClassSpec(parquet_executor.Executor))
+
+interactive_context.run(file_based_example_gen)
+
+
+
+
+
+
+
+
+
+from tfx.components import StatisticsGen,SchemaGen,ExampleValidator
+
+statistics_gen = StatisticsGen(csv_example_gen.outputs['examples'])
+
+schema_gen = SchemaGen(statistics=statistics_gen.outputs['statistics'])
+
+interactive_context.run(statistics_gen)
+
+interactive_context.show(statistics_gen.outputs['statistics'])
+
+interactive_context.run(schema_gen)
+
+interactive_context.show(schema_gen.outputs['schema'])
+
+
+
+import tensorflow_data_validation as tfdv
+
+csv_file_path = os.path.join("data","data.csv")
+
+statistic = tfdv.generate_statistics_from_csv(data_location=csv_file_path)
+
+tfdv.visualize_statistics(statistic)
+
+infered_schema = tfdv.infer_schema(statistic)
+
+anomalies = tfdv.validate_statistics(statistics=statistic,schema=infered_schema)
+
+tfdv.display_anomalies(anomalies=anomalies)
+
+anomalies
+
+tfdv.write_schema_text(infered_schema,os.path.join("infered_schema.txt"))
+
+schema = tfdv.load_schema_text(os.path.join("infered_schema.txt"))
+
+tfdv.get_feature(schema,'company')
+
+feature = tfdv.get_feature(schema,'dropoff_census_tract')
+
+feature.presence.min_fraction = 0.9
+
+feature
+
+tfdv.display_anomalies(tfdv.validate_statistics(statistics=statistic,schema=schema))
+
+tfdv.display_schema(schema)
+
+feature.skew_comparator.infinity_norm.threshold=0.01
+
+feature.drift_comparator.infinity_norm.threshold=0.01
+
+schema_gen
+
+example_val= ExampleValidator(statistics=statistics_gen.outputs['statistics'],schema=schema_gen.outputs['schema'])
+
+context.run(ex)
+
+# Pipeline args for Beam jobs within Components.
+_beam_pipeline_args = [
+    '--direct_running_mode=multi_processing',
+    # 0 means auto-detect based on on the number of CPUs available
+    # during execution time.
+    '--direct_num_workers=0',
+]
+
+# Airflow-specific configs; these will be passed directly to airflow
+_airflow_config = {
+    'schedule_interval': None,
+    'start_date': datetime.datetime(2019, 1, 1),
+}
+
+absl.logging.set_verbosity(absl.logging.INFO)
+
+tfx_pipeline = pipeline.Pipeline(
+    pipeline_name=_pipeline_name,
+    pipeline_root=_pipeline_root,
+    components=components,
+    enable_cache=True,
+    metadata_connection_config=(
+        metadata.sqlite_metadata_connection_config(_metadata_path)),
+    beam_pipeline_args=_beam_pipeline_args,
+    additional_pipeline_args={})
+
+# 'DAG' below needs to be kept for Airflow to detect dag.
+DAG = airflow_dag_runner.AirflowDagRunner(
+    airflow_dag_runner.AirflowPipelineConfig(_airflow_config)).run(
+      tfx_pipeline)

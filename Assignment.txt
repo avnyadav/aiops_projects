@@ -1,2 +1,12 @@
+
+12th March
 1. Take a JSON file and generate tfrecord file
-2. COnfigure MySQL database with Interactive Context
+2. Configure MySQL database with Interactive Context
+
+13th March
+You need to build a custom component ZipsvExampleGen 
+Requirement: Input Parameter:
+            1. https URI of zip file
+            
+            
+            
